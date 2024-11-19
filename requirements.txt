@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+supabase==0.1.7
+pandas
+scikit-learn
+random
