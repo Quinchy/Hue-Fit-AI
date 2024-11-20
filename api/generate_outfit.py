@@ -12,7 +12,7 @@ class UserFeatures(BaseModel):
     skin_tone: str = Field(alias="skintone")
     body_shape: str = Field(alias="bodyshape")
     age: int
-    outfit_name: Optional[str] = None  # Include outfit name as optional
+    outfit_name: str = Field(alias="outfitName")
 
 @router.post("/generate-outfit", tags=["Outfit"])
 async def generate_outfit(request: Request, user_features: UserFeatures):
