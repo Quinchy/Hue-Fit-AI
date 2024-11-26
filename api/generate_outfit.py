@@ -1,35 +1,67 @@
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
-from typing import Optional
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 from models import ai_model, database, color_combination
+import hashlib
 
 router = APIRouter()
+
+# To track changes in the input request
+last_request_hash = None
 
 # Input model
 class UserFeatures(BaseModel):
     height: float
     weight: float
-    skin_tone: str = Field(alias="skintone")
-    body_shape: str = Field(alias="bodyshape")
     age: int
-    outfit_name: str = Field(alias="outfitName")
+    skintone: str
+    bodyshape: str
+    category: str
+    outfit_name: str
+
+def compute_request_hash(user_features: UserFeatures):
+    """Compute a hash for the input features."""
+    input_string = f"{user_features.height}-{user_features.weight}-{user_features.age}-{user_features.skintone}-{user_features.bodyshape}-{user_features.category}"
+    return hashlib.sha256(input_string.encode()).hexdigest()
 
 @router.post("/generate-outfit", tags=["Outfit"])
-async def generate_outfit(request: Request, user_features: UserFeatures):
+async def generate_outfit(user_features: UserFeatures):
+    global last_request_hash
     try:
+        # Compute the hash of the current input
+        current_hash = compute_request_hash(user_features)
+
         # Step 1: Predict outfit components
-        predicted_outfit = ai_model.predict_outfit(user_features)
+        prediction_response = ai_model.predict_outfit(user_features)
+        prediction_queue = prediction_response.get("predictions", [])
+        if not prediction_queue:
+            raise HTTPException(status_code=404, detail="No predictions available.")
+
+        # Always get the first prediction
+        current_prediction = prediction_queue[0]
+
+        # Convert all values in current_prediction to uppercase
+        current_prediction = {
+            key: (value.upper() if isinstance(value, str) else value)
+            for key, value in current_prediction.items()
+        }
+
+        # Remove "No Outerwear" if present
+        if current_prediction.get("outerwear") == "NO OUTERWEAR":
+            current_prediction.pop("outerwear", None)
 
         # Step 2: Fetch products and their variants
-        products_and_variants = database.get_products_with_variants(predicted_outfit)
+        products_and_variants = database.get_products_with_variants(current_prediction)
 
-        # Step 3: Select the best combination using color logic
-        final_outfit = color_combination.select_best_combination(products_and_variants)
+        # Step 3: Select the best combination
+        best_combination = color_combination.select_best_combination(products_and_variants, user_features.skintone)
 
-        # Include the outfit name (if provided) in the response
+        # Update the hash to track the last processed request
+        last_request_hash = current_hash
+
+        # Step 4: Return the response
         response = {
-            "outfit": final_outfit,
-            "outfit_name": user_features.outfit_name  # Add outfit_name to the response
+            "outfit_name": user_features.outfit_name,
+            "best_combination": best_combination
         }
 
         return response
