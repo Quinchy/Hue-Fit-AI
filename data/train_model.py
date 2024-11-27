@@ -44,7 +44,7 @@ valid_combinations = {
         "footwear": ["Sneakers", "Boots"]
     },
     "Formal": {
-        "outerwear": ["Blazer", "Coats", "Cardigans", "Coats"],
+        "outerwear": ["Blazer", "Coats", "Cardigans", "Vests"],
         "upperwear": ["Long Sleeves", "Turtle Neck Long Sleeves"],
         "lowerwear": ["Slacks"],
         "footwear": ["Oxford", "Loafers"]
