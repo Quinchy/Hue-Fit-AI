@@ -1,6 +1,5 @@
 from math import sqrt
 import random
-from models.database import fetch_variant_thumbnail  # Import the function to fetch thumbnails
 
 def color_difference(hex1, hex2):
     """Calculate the color difference between two hex codes."""
@@ -92,24 +91,28 @@ def select_best_combination(products_and_variants, user_skintone):
             "productVariantNo": best_combination["upper"]["productVariantNo"],
             "name": f"{best_combination['upper']['colorName']} {products_and_variants['UPPERWEAR'][0]['productName']}",
             "price": best_combination["upper"]["price"],
-            "thumbnail": get_thumbnail(best_combination["upper"])
+            "thumbnail": get_thumbnail(best_combination["upper"]),
+            "hexcode": best_combination["upper"]["hexcode"],
         },
         "lower_wear": {
             "productVariantNo": best_combination["lower"]["productVariantNo"],
             "name": f"{best_combination['lower']['colorName']} {products_and_variants['LOWERWEAR'][0]['productName']}",
             "price": best_combination["lower"]["price"],
-            "thumbnail": get_thumbnail(best_combination["lower"])
+            "thumbnail": get_thumbnail(best_combination["lower"]),
+            "hexcode": best_combination["lower"]["hexcode"],
         },
         "footwear": {
             "productVariantNo": best_combination["footwear"]["productVariantNo"],
             "name": f"{best_combination['footwear']['colorName']} {products_and_variants['FOOTWEAR'][0]['productName']}",
             "price": best_combination["footwear"]["price"],
-            "thumbnail": get_thumbnail(best_combination["footwear"])
+            "thumbnail": get_thumbnail(best_combination["footwear"]),
+            "hexcode": best_combination["footwear"]["hexcode"],
         },
         "outerwear": {
             "productVariantNo": best_combination["outerwear"]["productVariantNo"] if best_combination["outerwear"] else None,
             "name": f"{best_combination['outerwear']['colorName']} {products_and_variants['OUTERWEAR'][0]['productName']}" if outerwear_colors else None,
             "price": best_combination["outerwear"]["price"] if best_combination["outerwear"] else None,
-            "thumbnail": get_thumbnail(best_combination["outerwear"]) if best_combination["outerwear"] else None
+            "thumbnail": get_thumbnail(best_combination["outerwear"]) if best_combination["outerwear"] else None,
+            "hexcode": best_combination["outerwear"]["hexcode"] if best_combination["outerwear"] else None,
         } if outerwear_colors else None
     }

@@ -39,12 +39,12 @@ valid_combinations = {
     },
     "Smart Casual": {
         "outerwear": ["No Outerwear"],
-        "upperwear": ["Polo Shirt", "Short Sleeves Shirt"],
+        "upperwear": ["Polo Shirt", "Short Sleeves"],
         "lowerwear": ["Chinos", "Trousers", "Jeans"],
         "footwear": ["Sneakers", "Boots"]
     },
     "Formal": {
-        "outerwear": ["Blazer"],
+        "outerwear": ["Blazer", "Coats"],
         "upperwear": ["Long Sleeves", "Turtle Neck Long Sleeves"],
         "lowerwear": ["Slacks"],
         "footwear": ["Oxford", "Loafers"]

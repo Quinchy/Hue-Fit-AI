@@ -5,6 +5,7 @@ from api.products import router as products_router  # Import the products router
 
 app = FastAPI()
 # To run: uvicorn main:app --reload
+# To run: uvicorn main:app --host 0.0.0.0 --port 8000
 
 app.add_middleware(
     CORSMiddleware,
