@@ -15,7 +15,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def fetch_tag_ids(tag_name):
     """Fetch all tag IDs based on the tag name across all shops."""
-    response = supabase.table("Tags").select("id").eq("name", tag_name).execute()
+    response = supabase.table("Tag").select("id").eq("name", tag_name).execute()
     if not response.data or len(response.data) == 0:
         raise RuntimeError(f"No tag IDs found for tag name '{tag_name}'.")
     return [row["id"] for row in response.data]
@@ -24,7 +24,7 @@ def fetch_products_by_tags(tag_ids):
     """Fetch products by multiple tag IDs."""
     products = []
     for tag_id in tag_ids:
-        response = supabase.table("Products").select("productNo, name, typeId, tagId").eq("tagId", tag_id).execute()
+        response = supabase.table("Product").select("productNo, name, typeId, tagId").eq("tagId", tag_id).execute()
         if response.data:
             products.extend(response.data)  # Add all matching products for the current tagId
 
@@ -34,25 +34,34 @@ def fetch_products_by_tags(tag_ids):
 
 def fetch_variants_and_colors(productNo):
     """Fetch product variants and their colors."""
-    response = supabase.table("ProductVariants").select("productVariantNo, colorId, price").eq("productNo", productNo).execute()
+    # Updated: Fetch the Product by productNo to get productId
+    product_response = supabase.table("Product").select("id").eq("productNo", productNo).single().execute()
+    if not product_response.data:
+        raise RuntimeError(f"No product found with productNo '{productNo}'.")
+    product_id = product_response.data["id"]
+
+    # Updated: Fetch ProductVariants using productId instead of productNo
+    response = supabase.table("ProductVariant").select("id, productVariantNo, colorId, price").eq("productId", product_id).execute()
     if not response.data or len(response.data) == 0:
         raise RuntimeError(f"No variants found for product '{productNo}'.")
 
     variants = []
     for variant in response.data:
-        color_response = supabase.table("Colors").select("name, hexcode").eq("id", variant["colorId"]).execute()
-        if not color_response.data or len(color_response.data) == 0:
+        # Updated: Use .single() since colorId is unique per variant
+        color_response = supabase.table("Color").select("name, hexcode").eq("id", variant["colorId"]).single().execute()
+        if not color_response.data:
             raise RuntimeError(f"No color found for colorId '{variant['colorId']}'.")
-        color = color_response.data[0]
 
-        # Fetch the first image URL for the variant
-        image_url = fetch_variant_thumbnail(variant["productVariantNo"])
+        color = color_response.data
+
+        # Updated: Fetch the first image URL using productVariantId instead of productVariantNo
+        image_url = fetch_variant_thumbnail(variant["id"])  # Pass productVariantId
 
         variants.append({
             "productVariantNo": variant["productVariantNo"],
             "colorName": color["name"],
             "hexcode": color["hexcode"],
-            "price": variant["price"],
+            "price": float(variant["price"]),  # Convert Decimal to float if necessary
             "imageUrl": image_url  # Include the image URL in the response
         })
     return variants
@@ -105,9 +114,10 @@ def get_products_with_variants(predicted_outfit):
     except Exception as e:
         raise RuntimeError(f"An error occurred while fetching products and variants: {str(e)}")
 
-def fetch_variant_thumbnail(productVariantNo):
+def fetch_variant_thumbnail(productVariantId):
     """Fetch the first thumbnail for a product variant."""
-    response = supabase.table("ProductVariantImages").select("imageUrl").eq("productVariantNo", productVariantNo).execute()
+    # Updated: Use productVariantId instead of productVariantNo
+    response = supabase.table("ProductVariantImage").select("imageURL").eq("productVariantId", productVariantId).limit(1).execute()
     if response.data and len(response.data) > 0:
-        return response.data[0]["imageUrl"]  # Return the first image URL
+        return response.data[0]["imageURL"]  # Return the first image URL
     return None  # Return None if no image is found
