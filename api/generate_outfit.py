@@ -1,7 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from models import ai_model, database, color_combination
 import hashlib
+import logging
+
+# Initialize logger for this module
+logger = logging.getLogger("outfit_api")
 
 router = APIRouter()
 
@@ -24,8 +28,9 @@ def compute_request_hash(user_features: UserFeatures):
     return hashlib.sha256(input_string.encode()).hexdigest()
 
 @router.post("/generate-outfit", tags=["Outfit"])
-async def generate_outfit(user_features: UserFeatures):
+async def generate_outfit(user_features: UserFeatures, request: Request):
     global last_request_hash
+    logger.info(f"API accessed from IP: {request.client.host} at {request.client.port}")
     try:
         # Compute the hash of the current input
         current_hash = compute_request_hash(user_features)
@@ -64,7 +69,9 @@ async def generate_outfit(user_features: UserFeatures):
             "best_combination": best_combination
         }
 
+        logger.info(f"Successful response for request hash: {current_hash}")
         return response
 
     except Exception as e:
+        logger.error(f"Error processing request: {e}")
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
