@@ -33,7 +33,8 @@ def fetch_products_by_tags(tag_ids):
 
 def fetch_variants_and_colors(product_id):
     try:
-        response = supabase.table("ProductVariant").select("id, colorId, price").eq("productId", product_id).execute()
+        # Include pngClotheURL in the select fields
+        response = supabase.table("ProductVariant").select("id, colorId, price, pngClotheURL").eq("productId", product_id).execute()
         if not response.data:
             return []
         variants = []
@@ -48,7 +49,8 @@ def fetch_variants_and_colors(product_id):
                 "colorName": color["name"],
                 "hexcode": color["hexcode"],
                 "price": float(variant["price"]),
-                "imageUrl": image_url
+                "imageUrl": image_url,
+                "pngClotheURL": variant.get("pngClotheURL")  # New field to retrieve PNG URL
             })
         return variants
     except Exception as e:
