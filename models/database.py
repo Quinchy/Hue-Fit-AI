@@ -56,7 +56,12 @@ def fetch_variants_and_colors(product_id):
     except Exception as e:
         raise
 
-def get_products_with_variants(predicted_outfit):
+def get_products_with_variants(predicted_outfit, recommended_color: str = None):
+    """
+    Retrieves products and their variants based on the predicted outfit.
+    If a recommended_color is provided, it will attach a 'default_variant'
+    to each product if one of its variants matches the recommended color.
+    """
     try:
         categories = {
             "outerwear": predicted_outfit.get("outerwear"),
@@ -78,11 +83,18 @@ def get_products_with_variants(predicted_outfit):
             for product in products:
                 product_variants = fetch_variants_and_colors(product["id"])
                 if product_variants:
-                    variants.append({
+                    product_entry = {
                         "productId": product["id"],
                         "productName": product["name"],
                         "variants": product_variants
-                    })
+                    }
+                    # If a recommended color is provided, preselect a matching variant.
+                    if recommended_color:
+                        for variant in product_variants:
+                            if variant["colorName"].lower() == recommended_color.lower():
+                                product_entry["default_variant"] = variant
+                                break
+                    variants.append(product_entry)
             if variants:
                 all_variants[type_name.upper()] = variants
         return all_variants
