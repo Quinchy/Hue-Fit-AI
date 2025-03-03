@@ -89,6 +89,7 @@ def select_best_combination(products_and_variants, user_skintone):
             "price": best_combination["upper"]["price"],
             "thumbnail": get_thumbnail(best_combination["upper"]),
             "hexcode": best_combination["upper"]["hexcode"],
+            "pngClotheURL": best_combination["upper"].get("pngClotheURL")
         },
         "lower_wear": {
             "productId": best_combination["lower"]["parentProductId"],
@@ -97,6 +98,7 @@ def select_best_combination(products_and_variants, user_skintone):
             "price": best_combination["lower"]["price"],
             "thumbnail": get_thumbnail(best_combination["lower"]),
             "hexcode": best_combination["lower"]["hexcode"],
+            "pngClotheURL": best_combination["lower"].get("pngClotheURL")
         },
         "footwear": {
             "productId": best_combination["footwear"]["parentProductId"],
@@ -114,6 +116,7 @@ def select_best_combination(products_and_variants, user_skintone):
             "price": best_combination["outerwear"]["price"] if best_combination.get("outerwear") else None,
             "thumbnail": get_thumbnail(best_combination["outerwear"]) if best_combination.get("outerwear") else None,
             "hexcode": best_combination["outerwear"]["hexcode"] if best_combination.get("outerwear") else None,
+            "pngClotheURL": best_combination["outerwear"].get("pngClotheURL") if best_combination.get("outerwear") else None,
         } if outerwear_colors else None
     }
     
