@@ -1,4 +1,3 @@
-# models/color_combination.py
 from math import sqrt
 import random
 import logging
@@ -106,6 +105,7 @@ def select_best_combination(products_and_variants, user_skintone):
             "price": best_combination["footwear"]["price"],
             "thumbnail": get_thumbnail(best_combination["footwear"]),
             "hexcode": best_combination["footwear"]["hexcode"],
+            "pngClotheURL": best_combination["footwear"].get("pngClotheURL")
         },
         "outerwear": {
             "productId": best_combination["outerwear"]["parentProductId"] if best_combination.get("outerwear") else None,
