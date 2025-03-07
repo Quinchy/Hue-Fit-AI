@@ -14,14 +14,15 @@ def select_best_combination(products_and_variants, user_skintone):
         difference = color_difference(color_hex, skintone_hex)
         return 100 <= difference <= 200
 
+    # Corrected skintone hex values for provided skin tones.
     skintone_hex = {
         "fair": "#FFDFC4",
-        "medium": "#D4A67D",
-        "olive": "#8E562E",
-        "dark": "#4A2C2A"
+        "light": "#F0D5BE",
+        "medium": "#D1A17B",
+        "dark": "#8E583E",
+        "deep": "#4A2C2A"
     }.get(user_skintone.lower(), "#FFFFFF")
 
-    # Updated: Attach parent product details to each variant.
     def extract_variants(category_name):
         if category_name in products_and_variants and products_and_variants[category_name]:
             variants = []
@@ -43,20 +44,16 @@ def select_best_combination(products_and_variants, user_skintone):
     for upper in upper_colors:
         for lower in lower_colors:
             for footwear in footwear_colors:
-                # If there are outerwear options, iterate them; else, use an empty dict.
                 for outerwear in outerwear_colors if outerwear_colors else [{}]:
-                    # Check that each item has a hexcode.
-                    if not all(["hexcode" in item for item in [upper, lower, footwear] + ([outerwear] if outerwear else [])]):
+                    items = [upper, lower, footwear]
+                    if outerwear.get("hexcode"):
+                        items.append(outerwear)
+                    if not all("hexcode" in item for item in items):
                         continue
                     upper_lower_diff = color_difference(upper["hexcode"], lower["hexcode"])
                     lower_footwear_diff = color_difference(lower["hexcode"], footwear["hexcode"])
-                    complements_skintone = all([
-                        is_skin_tone_complementary(upper["hexcode"], skintone_hex),
-                        is_skin_tone_complementary(lower["hexcode"], skintone_hex),
-                        is_skin_tone_complementary(footwear["hexcode"], skintone_hex)
-                    ])
-                    if outerwear and outerwear.get("hexcode"):
-                        complements_skintone &= is_skin_tone_complementary(outerwear["hexcode"], skintone_hex)
+                    complements_skintone = all(is_skin_tone_complementary(item["hexcode"], skintone_hex) for item in items)
+
                     if 50 <= upper_lower_diff <= 150 and 50 <= lower_footwear_diff <= 150 and complements_skintone:
                         good_combinations.append({
                             "upper": upper,
@@ -64,6 +61,7 @@ def select_best_combination(products_and_variants, user_skintone):
                             "footwear": footwear,
                             "outerwear": outerwear if outerwear_colors else None
                         })
+
     if not good_combinations:
         for upper in upper_colors:
             for lower in lower_colors:
@@ -75,6 +73,7 @@ def select_best_combination(products_and_variants, user_skintone):
                             "footwear": footwear,
                             "outerwear": outerwear if outerwear_colors else None
                         })
+
     random.shuffle(good_combinations)
     best_combination = good_combinations[0]
 
@@ -119,6 +118,6 @@ def select_best_combination(products_and_variants, user_skintone):
             "pngClotheURL": best_combination["outerwear"].get("pngClotheURL") if best_combination.get("outerwear") else None,
         } if outerwear_colors else None
     }
-    
+
     logger.info(f"Return: {result}")
     return result
