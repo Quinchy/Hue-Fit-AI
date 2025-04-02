@@ -24,7 +24,12 @@ def fetch_products_by_tags(tag_ids):
     try:
         products = []
         for tag_id in tag_ids:
-            response = supabase.table("Product").select("id, name, typeId, tagId").eq("tagId", tag_id).execute()
+            # Filter products that are not archived
+            response = supabase.table("Product") \
+                .select("id, name, typeId, tagId") \
+                .eq("tagId", tag_id) \
+                .eq("isArchived", False) \
+                .execute()
             if response.data:
                 products.extend(response.data)
         return products
@@ -33,13 +38,21 @@ def fetch_products_by_tags(tag_ids):
 
 def fetch_variants_and_colors(product_id):
     try:
-        # Include pngClotheURL in the select fields
-        response = supabase.table("ProductVariant").select("id, colorId, price, pngClotheURL").eq("productId", product_id).execute()
+        # Include pngClotheURL in the select fields and filter non-archived variants
+        response = supabase.table("ProductVariant") \
+            .select("id, colorId, price, pngClotheURL") \
+            .eq("productId", product_id) \
+            .eq("isArchived", False) \
+            .execute()
         if not response.data:
             return []
         variants = []
         for variant in response.data:
-            color_response = supabase.table("Color").select("id, name, hexcode").eq("id", variant["colorId"]).single().execute()
+            color_response = supabase.table("Color") \
+                .select("id, name, hexcode") \
+                .eq("id", variant["colorId"]) \
+                .single() \
+                .execute()
             if not color_response.data:
                 continue
             color = color_response.data
@@ -103,7 +116,11 @@ def get_products_with_variants(predicted_outfit, recommended_color: str = None):
 
 def fetch_variant_thumbnail(productVariantId):
     try:
-        response = supabase.table("ProductVariantImage").select("imageURL").eq("productVariantId", productVariantId).limit(1).execute()
+        response = supabase.table("ProductVariantImage") \
+            .select("imageURL") \
+            .eq("productVariantId", productVariantId) \
+            .limit(1) \
+            .execute()
         if response.data:
             return response.data[0]["imageURL"]
         return None
